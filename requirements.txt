@@ -1,0 +1,10 @@
+yfinance
+pandas
+numpy
+textblob
+GoogleNews
+ta
+fastapi
+uvicorn
+python-multipart
+pytz
