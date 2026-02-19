@@ -51,11 +51,29 @@ def calculate_signal(df, sentiment_score):
     combined_prob = (ai_prob * 0.5) + (rule_prob * 0.3) + (sentiment_score * 0.2)
     combined_prob = np.clip(combined_prob, 0, 1)
 
+    # --- PART 4: Triggers Identification ---
+    triggers = []
+    if ai_prob > 0.6: triggers.append("AI Bullish Pattern")
+    elif ai_prob < 0.4: triggers.append("AI Bearish Pattern")
+    
+    if 'RSI' in latest:
+        if latest['RSI'] < 30: triggers.append("RSI Oversold")
+        elif latest['RSI'] > 70: triggers.append("RSI Overbought")
+        
+    if 'MACD' in latest and 'MACD_Signal' in latest:
+        if latest['MACD'] > latest['MACD_Signal'] and prev['MACD'] <= prev['MACD_Signal']:
+            triggers.append("Bullish MACD Cross")
+        elif latest['MACD'] < latest['MACD_Signal'] and prev['MACD'] >= prev['MACD_Signal']:
+            triggers.append("Bearish MACD Cross")
+
+    if sentiment_score > 0.2: triggers.append("Positive News Sentiment")
+    elif sentiment_score < -0.2: triggers.append("Negative News Sentiment")
+
     signal = "HOLD"
     if combined_prob > 0.65: signal = "BUY"
     elif combined_prob < 0.35: signal = "SELL"
 
-    return float(combined_prob), signal
+    return float(combined_prob), signal, triggers
 
 # Removed AI model functions as per request.
 # The calculation is now handled by calculate_signal.

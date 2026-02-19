@@ -34,7 +34,7 @@ async def analyze_stock(ticker: str):
         if df.empty:
             raise HTTPException(status_code=404, detail=f"No data found for {ticker}")
         
-        news = fetch_market_news(keywords=['India Stock Market', ticker, 'Global Economy', 'Geopolitics'])
+        news = fetch_market_news(keywords=['NSE Stock Market India', ticker, 'Global Economy', 'Geopolitics'])
         
         # 2. Process
         df_tech = add_technical_indicators(df)
@@ -44,11 +44,12 @@ async def analyze_stock(ticker: str):
         sentiment_score = analyze_sentiment(news)
         
         # 3. Calculate Signal
-        prob, signal = calculate_signal(df_tech, sentiment_score)
+        prob, signal, triggers = calculate_signal(df_tech, sentiment_score)
         
         return {
             "ticker": ticker,
             "signal": signal,
+            "triggers": triggers,
             "probability": round(prob, 4),
             "sentiment": round(sentiment_score, 4),
             "latest_price": round(float(df['Close'].iloc[-1]), 2),
@@ -59,11 +60,11 @@ async def analyze_stock(ticker: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/dashboard")
-async def dashboard_stats():
+async def dashboard_stats(refresh: bool = False):
     """Returns comprehensive dashboard intelligence."""
     try:
         loop = asyncio.get_event_loop()
-        stats = await loop.run_in_executor(None, get_super_intelligence)
+        stats = await loop.run_in_executor(None, get_super_intelligence, refresh)
         return stats
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
